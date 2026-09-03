@@ -1,3 +1,12 @@
-productos_carrefour.csv
-productos_dia.csv
+# Ignorar CSV grandes
 *.csv
+
+# Ignorar archivos temporales de Jupyter
+.ipynb_checkpoints/
+
+# Ignorar archivos de VSCode
+.vscode/
+
+# Ignorar archivos de sistema
+.DS_Store
+Thumbs.db
