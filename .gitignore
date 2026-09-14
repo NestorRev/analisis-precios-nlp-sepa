@@ -1,5 +1,12 @@
-# Ignorar CSV grandes
+# Ignorar todos los CSV por defecto
 *.csv
+
+# EXCEPCIÓN: permitir CSV pequeños dentro de data/raw
+!data/raw/sucursales_carrefour.csv
+!data/raw/sucursales_dia.csv
+
+# EXCEPCIÓN: permitir CSV dentro de metadata
+!data/metadata/*.csv
 
 # Ignorar archivos temporales de Jupyter
 .ipynb_checkpoints/
