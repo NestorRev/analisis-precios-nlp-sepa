@@ -65,8 +65,8 @@ El proyecto busca demostrar competencias en:
 |---|---|---|
 | 1 | Preparación, precios y promociones | ✅ Completada |
 | 2 | Preparación de sucursales para análisis geográfico | ✅ Completada |
-| 3 | Comparación y análisis de precios por provincia | 🟡 En curso |
-| 4 | Construcción de categorías de productos | ⬜ Pendiente |
+| 3 | Comparación y análisis de precios por provincia | ✅ Completada |
+| 4 | Construcción de categorías de productos | 🟡 En curso  |
 | 5 | Categorización de productos mediante NLP y ML | ⬜ Pendiente |
 | 6 | Canasta comparable y conclusiones finales | ⬜ Pendiente |
 
@@ -602,43 +602,263 @@ La integración deja preparados los datos para incorporar la dimensión provinci
 
 # 📍 Etapa 3 — Comparación y análisis de precios por provincia
 
-**Estado: 🟡 En curso**
+**Estado: ✅ Completada**
 
-Esta etapa constituye el siguiente paso del proyecto y utiliza los datasets de productos y sucursales preparados en las etapas anteriores.
+La tercera etapa incorporó la dimensión territorial al análisis de precios entre DIA y Carrefour. Para ello se integró la información de productos con los datos de sucursales preparados en la Etapa 2 y se construyeron universos comparables a nivel de **producto, provincia y cadena**.
 
-El objetivo es incorporar la dimensión territorial al análisis y estudiar cómo se comportan los precios de los productos comunes entre DIA y Carrefour en las provincias donde ambas cadenas tienen presencia.
+El análisis mantuvo como unidad de observación el **producto–sucursal**, pero realizó agregaciones posteriores a nivel de producto–provincia–cadena para comparar los precios de los mismos productos en territorios equivalentes.
 
-El análisis se desarrollará manteniendo como unidad de observación el **producto–sucursal**, para posteriormente construir agregaciones a nivel de producto, provincia y cadena.
+El objetivo principal fue determinar cómo varían los precios entre DIA y Carrefour según la provincia, analizar la dispersión territorial y estudiar si los patrones observados se mantienen al cambiar la escala geográfica.
 
-Entre los análisis previstos se encuentran:
+---
 
-- comparación de precios entre cadenas dentro de cada provincia;
-- diferencias de precios entre provincias;
-- comportamiento de los mismos productos en distintas regiones;
-- análisis de dispersión territorial;
-- comparación de precios de lista y efectivos;
-- análisis de promociones cuando resulte pertinente;
-- visualizaciones por provincia y cadena.
+## 🔎 Construcción del universo comparable
 
-La comparación deberá tener en cuenta que las cantidades de sucursales y la composición de productos pueden diferir entre provincias y cadenas. Por ello, las comparaciones se realizarán procurando mantener el universo de productos comparable.
+La exploración inicial identificó **19.368 pares producto–provincia** con información comparable entre ambas cadenas dentro de las ocho provincias analizadas.
+
+Antes de construir los universos definitivos se revisaron las diferencias porcentuales extremas. Se detectaron **33 pares producto–provincia** con `|diferencia_pct| > 500%`, correspondientes a **5 productos**.
+
+Estos productos fueron excluidos de los universos posteriores para evitar que diferencias relativas excepcionalmente grandes tuvieran una influencia desproporcionada sobre los indicadores agregados. La exclusión constituye una decisión metodológica de control de valores extremos y no implica afirmar que los registros originales sean necesariamente errores.
+
+Luego del filtrado se construyeron dos universos con cobertura completa:
+
+| Universo | Productos | Uso |
+|---|---:|---|
+| 8 provincias | **1.662** | Análisis complementario de sensibilidad |
+| 7 provincias, sin Jujuy | **2.220** | Universo principal |
+
+El universo de 7 provincias incorpora **558 productos adicionales**, equivalentes a un **33,57% más** respecto del universo de 8 provincias.
+
+Se adoptó el universo de 7 provincias como referencia principal debido a la cobertura limitada de Carrefour en Jujuy. El universo de 8 provincias se conserva como análisis de sensibilidad para observar el efecto de incluir esa provincia.
+
+---
+
+## 📊 Comparación de precios entre DIA y Carrefour por provincia
+
+La comparación se realizó producto contra producto dentro de cada provincia. Para cada combinación `provincia + id_producto` se calculó el precio medio observado en cada cadena y posteriormente la diferencia porcentual:
+
+```text
+Diferencia % = (precio_DIA - precio_Carrefour) / precio_Carrefour × 100
+```
+
+Con esta definición:
+
+- valores negativos indican que **DIA presenta un precio menor**;
+- valores positivos indican que **Carrefour presenta un precio menor**.
+
+En el universo principal de 7 provincias, la diferencia media fue negativa en todas las provincias:
+
+| Provincia | Diferencia media DIA vs. Carrefour |
+|---|---:|
+| CABA | **−5,52%** |
+| Corrientes | **−4,59%** |
+| Córdoba | **−4,34%** |
+| Buenos Aires | **−3,49%** |
+| Santa Fe | **−2,52%** |
+| Entre Ríos | **−1,67%** |
+| Salta | **−1,42%** |
+
+Dentro del universo comparable definido, esto indica una diferencia media favorable a DIA en las siete provincias analizadas.
+
+La proporción de productos en los que DIA presenta un precio menor también varía territorialmente:
+
+- Corrientes: **61,26%**
+- CABA: **60,59%**
+- Córdoba: **59,46%**
+- Santa Fe: **53,20%**
+- Entre Ríos: **52,66%**
+- Buenos Aires: **47,48%**
+- Salta: **44,68%**
+
+Por lo tanto, la ventaja media de DIA no implica que sea más barato en todos los productos ni que tenga la misma intensidad en todas las provincias.
+
+---
+
+## 📐 Media y mediana
+
+La **media** se mantuvo como medida principal del proyecto y la **mediana** se utilizó como medida complementaria para evaluar la robustez de las conclusiones.
+
+Las medianas de las diferencias porcentuales en el universo de 7 provincias fueron:
+
+| Provincia | Diferencia mediana DIA vs. Carrefour |
+|---|---:|
+| CABA | **−2,66%** |
+| Córdoba | **−2,44%** |
+| Corrientes | **−0,95%** |
+| Entre Ríos | **−0,33%** |
+| Santa Fe | **−0,21%** |
+| Buenos Aires | **+0,13%** |
+| Salta | **+0,88%** |
+
+La diferencia entre media y mediana es relevante: mientras la media resulta favorable a DIA en las siete provincias, la mediana es mucho más cercana a cero y resulta ligeramente positiva en Buenos Aires y Salta.
+
+Esto indica que la ventaja observada mediante la media **no es uniforme a lo largo de toda la distribución de productos** y que algunas diferencias de mayor magnitud influyen sobre el promedio.
+
+---
+
+## 🗺️ Sensibilidad al incluir Jujuy
+
+El universo de 8 provincias permitió comprobar que Jujuy presenta un comportamiento diferente al resto del territorio analizado.
+
+Los resultados para Jujuy fueron:
+
+- diferencia media: **+8,45%**;
+- diferencia mediana: **+8,28%**;
+- DIA es más barato en **26,84%** de los productos;
+- Carrefour es más barato en aproximadamente **70%** de los productos.
+
+El signo positivo indica que, dentro del universo comparable de Jujuy, **Carrefour presenta precios inferiores a DIA**.
+
+Este comportamiento modifica de manera importante la comparación general cuando Jujuy se incorpora al universo. Por este motivo, el análisis de 8 provincias se conserva como sensibilidad y el de 7 provincias se utiliza como referencia principal.
+
+---
+
+## 🌎 Dispersión territorial de los mismos productos
+
+Se analizó también cómo cambia el precio de un mismo producto entre las distintas provincias.
+
+Para ello se utilizó:
+
+```text
+rango_pct = (máximo - mínimo) / máximo × 100
+```
+
+La mediana del rango porcentual territorial fue:
+
+| Cadena | Mediana del rango territorial |
+|---|---:|
+| DIA | **3,61%** |
+| Carrefour | **9,21%** |
+
+Esto muestra que, dentro del universo analizado, **Carrefour presenta una mayor dispersión territorial de precios para los mismos productos**.
+
+El resultado es descriptivo: el rango permite medir la magnitud de la variación, pero no permite determinar por sí solo las causas de esas diferencias.
+
+---
+
+## 🏪 Dispersión entre sucursales dentro de cada provincia
+
+También se estudió la variación de precios entre sucursales de una misma cadena dentro de cada provincia.
+
+### Carrefour
+
+| Provincia | Mediana del rango entre sucursales |
+|---|---:|
+| Buenos Aires | **16,20%** |
+| Córdoba | **12,27%** |
+| CABA | **9,73%** |
+| Entre Ríos | **7,96%** |
+| Santa Fe | **5,07%** |
+| Salta | **0,99%** |
+| Corrientes | **0%** |
+
+### DIA
+
+| Provincia | Mediana del rango entre sucursales |
+|---|---:|
+| Salta | **3,20%** |
+| Buenos Aires | **1,95%** |
+| CABA | **1,95%** |
+| Córdoba | **0%** |
+| Corrientes | **0%** |
+| Entre Ríos | **0%** |
+| Santa Fe | **0%** |
+
+El patrón general muestra una mayor dispersión interna en Carrefour en varias provincias, mientras que DIA presenta valores más reducidos en la mayoría de los territorios.
+
+Esta comparación debe interpretarse teniendo en cuenta la cantidad de sucursales disponibles. Un rango de 0% en una provincia con pocas sucursales no demuestra que una cadena mantenga precios idénticos en todo el territorio.
+
+---
+
+## 🧭 Análisis regional
+
+Como complemento del análisis provincial se agruparon las ocho provincias en tres regiones:
+
+| Región | Provincias |
+|---|---|
+| **METROPOLITANA** | Buenos Aires, CABA |
+| **CENTRO–LITORAL** | Córdoba, Santa Fe, Entre Ríos, Corrientes |
+| **NOA** | Jujuy, Salta |
+
+El análisis regional utilizó el universo de **1.662 productos con cobertura completa en las ocho provincias**.
+
+Para evitar que una región recibiera mayor peso simplemente por tener más provincias, primero se calculó el precio medio de cada producto dentro de cada provincia y luego se promediaron las provincias pertenecientes a cada región. De esta forma, cada provincia tiene el mismo peso dentro de su región.
+
+Los resultados fueron:
+
+| Región | Precio medio DIA | Precio medio Carrefour | Diferencia media |
+|---|---:|---:|---:|
+| CENTRO–LITORAL | $4.895,57 | $5.136,69 | **−3,34%** |
+| METROPOLITANA | $4.898,10 | $5.199,96 | **−4,54%** |
+| NOA | $5.012,32 | $4.985,51 | **+2,79%** |
+
+En **METROPOLITANA** y **CENTRO–LITORAL**, DIA presenta precios medios regionales inferiores a Carrefour.
+
+En **NOA**, Carrefour presenta un precio medio regional ligeramente inferior a DIA.
+
+La proporción de productos en los que DIA resulta más barato también varía:
+
+- METROPOLITANA: **58,12%**
+- CENTRO–LITORAL: **55,05%**
+- NOA: **30,93%**
+
+El análisis regional confirma que la relación de precios entre ambas cadenas cambia según el territorio.
+
+### Índice regional
+
+Tomando como referencia 100 la región más barata de cada cadena:
+
+**DIA**
+
+- CENTRO–LITORAL: **100,00**
+- METROPOLITANA: **100,05**
+- NOA: **102,38**
+
+**Carrefour**
+
+- NOA: **100,00**
+- CENTRO–LITORAL: **103,03**
+- METROPOLITANA: **104,30**
+
+La región de menor nivel de precios no es la misma para ambas cadenas. En DIA, Centro–Litoral y Metropolitana presentan niveles prácticamente iguales, mientras que NOA se encuentra por encima. En Carrefour, NOA es la región de menor nivel relativo y Metropolitana la de mayor nivel.
+
+Este índice es descriptivo y no representa un índice de costo de vida, participación de mercado ni una canasta de consumo ponderada.
+
+---
+
+## 📌 Principales hallazgos de la Etapa 3
+
+1. **DIA presenta una diferencia media favorable frente a Carrefour en las siete provincias del universo principal**, aunque la magnitud de esa diferencia cambia según el territorio.
+
+2. **La media y la mediana no cuentan exactamente la misma historia**. La mediana es considerablemente más cercana a cero y resulta ligeramente favorable a Carrefour en Buenos Aires y Salta.
+
+3. **Jujuy presenta un comportamiento diferencial**, con una ventaja clara para Carrefour dentro del universo comparable de esa provincia.
+
+4. **Carrefour presenta mayor dispersión territorial de los mismos productos**, con una mediana del rango de 9,21% frente al 3,61% de DIA.
+
+5. **La dispersión entre sucursales también es generalmente mayor en Carrefour**, aunque está condicionada por la cantidad de sucursales disponibles en cada provincia.
+
+6. **El comportamiento regional no es uniforme**: DIA presenta precios medios inferiores a Carrefour en Metropolitana y Centro–Litoral, mientras que Carrefour presenta precios medios inferiores en NOA.
+
+7. Los casos con diferencias superiores al 500% se concentraron en **5 productos**, que fueron excluidos de los universos posteriores para controlar su influencia sobre los indicadores agregados.
+
+8. La comparación territorial muestra que **no existe una única relación de precios independiente de la ubicación**. La cadena con menor precio relativo puede variar según la provincia o región analizada.
 
 ---
 
 # 🏷️ Etapa 4 — Construcción de categorías de productos
 
-**Estado: ⬜ Pendiente**
+**Estado: 🟡 En curso**
 
-SEPA no proporciona directamente una clasificación comercial suficientemente estructurada para el análisis que se pretende realizar.
+La Etapa 4 comienza una vez finalizado el análisis territorial de precios.
 
-Por este motivo, se construirá una clasificación propia de productos.
+SEPA no proporciona directamente una clasificación comercial suficientemente estructurada para el análisis que se pretende realizar. Por este motivo, se construirá una clasificación propia de productos.
 
-El primer paso será definir las categorías y establecer criterios claros para su asignación.
+El primer paso será definir las categorías y establecer criterios claros para su asignación. Posteriormente se seleccionará una muestra de productos que será **etiquetada manualmente**.
 
-Posteriormente se seleccionará una muestra de productos que será **etiquetada manualmente**.
+Estas etiquetas servirán como referencia para la etapa posterior de clasificación automática mediante NLP y Machine Learning.
 
-Estas etiquetas servirán como referencia para la etapa posterior de clasificación automática.
-
-La categorización manual será realizada procurando que la muestra contenga variedad suficiente de descripciones y tipos de productos para que los modelos posteriores puedan aprender las características del texto.
+La categorización manual deberá mantener criterios consistentes y suficientemente claros para que las categorías puedan ser reproducidas y utilizadas como variable de análisis en las siguientes etapas.
 
 ---
 
@@ -668,17 +888,7 @@ Categorización automática
 
 Entre las técnicas que podrán evaluarse se encuentran representaciones como **TF-IDF** y diferentes modelos de clasificación supervisada.
 
-La evaluación se realizará utilizando métricas apropiadas para clasificación, como:
-
-- Accuracy;
-- Precision;
-- Recall;
-- F1-score;
-- matriz de confusión.
-
-El modelo seleccionado se utilizará posteriormente para completar la categorización del universo de productos.
-
-La elección definitiva de técnicas y modelos dependerá de los resultados obtenidos durante la experimentación.
+La evaluación utilizará métricas apropiadas para clasificación, como Accuracy, Precision, Recall, F1-score y matriz de confusión. La elección definitiva de técnicas y modelos dependerá de los resultados obtenidos durante la experimentación.
 
 ---
 
@@ -686,9 +896,9 @@ La elección definitiva de técnicas y modelos dependerá de los resultados obte
 
 **Estado: ⬜ Pendiente**
 
-Una vez que los productos estén categorizados, se construirá una **canasta comparable** entre DIA y Carrefour.
+Una vez categorizados los productos se construirá una **canasta comparable** entre DIA y Carrefour.
 
-La selección de productos buscará garantizar que los artículos incluidos sean comparables entre ambas cadenas y que la canasta tenga una composición suficientemente representativa para el objetivo del análisis.
+La selección buscará garantizar que los productos incluidos sean comparables entre ambas cadenas y que la canasta tenga una composición coherente con el objetivo final del proyecto.
 
 En esta etapa se realizarán:
 
@@ -697,12 +907,11 @@ En esta etapa se realizarán:
 - comparación del costo de la canasta;
 - análisis por cadena y provincia cuando corresponda;
 - construcción de gráficos finales;
-- identificación de los resultados más relevantes;
-- integración de los principales hallazgos del proyecto;
+- integración de los principales hallazgos;
 - documentación de limitaciones;
 - elaboración de las conclusiones finales.
 
-La canasta se construirá al final del proyecto porque para ese momento ya estarán disponibles las dimensiones necesarias: productos, precios, sucursales, provincias y categorías.
+La canasta se construirá al final porque para ese momento estarán disponibles las dimensiones necesarias: productos, precios, sucursales, provincias y categorías.
 
 ---
 
@@ -710,7 +919,7 @@ La canasta se construirá al final del proyecto porque para ese momento ya estar
 
 Las visualizaciones constituyen un componente transversal del proyecto.
 
-A lo largo de las distintas etapas se utilizarán gráficos para comunicar:
+A lo largo de las distintas etapas se utilizan gráficos para comunicar:
 
 - distribución de precios;
 - dispersión entre sucursales;
@@ -718,11 +927,12 @@ A lo largo de las distintas etapas se utilizarán gráficos para comunicar:
 - frecuencia y profundidad de promociones;
 - alcance de promociones;
 - diferencias de precios por provincia;
+- comportamiento territorial y regional;
 - comportamiento de categorías;
 - comparación de la canasta;
 - resultados finales.
 
-Las visualizaciones se utilizarán como complemento del análisis cuantitativo y estarán acompañadas por una interpretación basada en los datos.
+Las visualizaciones se utilizan como complemento del análisis cuantitativo y se acompañan de una interpretación basada en los datos.
 
 ---
 
@@ -743,6 +953,11 @@ El proyecto mantiene separadas diferentes dimensiones del análisis para evitar 
 | Presencia de `promo1` | `promo1` |
 | Alcance de `promo1` | `frac_sucursales_con_promo` |
 | Territorio común | `provincias_comunes` |
+| Comparación territorial principal | Media de precio por producto–provincia–cadena |
+| Universo principal Etapa 3 | 7 provincias, sin Jujuy |
+| Universo de sensibilidad | 8 provincias |
+| Control de valores extremos | `|diferencia_pct| > 500%` |
+| Dispersión territorial | Rango porcentual entre provincias |
 
 Las interpretaciones se plantean de forma descriptiva y se evita atribuir causalidad cuando los datos no permiten establecerla.
 
@@ -753,18 +968,24 @@ Las interpretaciones se plantean de forma descriptiva y se evita atribuir causal
 Los resultados del proyecto deben interpretarse teniendo en cuenta:
 
 - Los datos corresponden a **julio de 2026** y representan el período disponible analizado.
-- La comparación de precios se realiza sobre el universo de productos comunes identificado entre las cadenas.
+- La comparación de precios se realiza sobre universos de productos comparables definidos metodológicamente.
 - La información depende de los datos publicados por SEPA.
 - Las cantidades y composición de sucursales pueden diferir entre cadenas y provincias.
+- Jujuy presenta una cobertura limitada de Carrefour dentro del universo utilizado, por lo que se excluye del análisis territorial principal y se conserva como análisis de sensibilidad.
 - Las diferencias de precios pueden estar relacionadas con características de las sucursales que no necesariamente están disponibles en SEPA.
 - El rango porcentual es sensible a valores extremos.
 - El coeficiente de variación también puede verse afectado por valores extremos.
-- `promo2` se mantiene separada de `precio_efectivo`.
-- La ausencia de un tipo de promoción en el dataset no demuestra necesariamente su ausencia en la estrategia comercial general de una cadena.
-- La normalización geográfica requirió correcciones manuales basadas en localidades, direcciones y coordenadas.
-- Los rangos geográficos utilizados para detectar anomalías son filtros aproximados y no representan límites administrativos oficiales.
-- La categorización comercial todavía no está disponible de forma directa en SEPA y deberá construirse durante las siguientes etapas.
-- La canasta comparable se definirá posteriormente, por lo que sus criterios de selección todavía no forman parte de los resultados actuales.
+- Se excluyeron 5 productos que presentaron al menos un caso con `|diferencia_pct| > 500%`.
+- La exclusión de estos productos constituye una decisión metodológica de control de valores extremos y no demuestra que sus registros originales sean necesariamente incorrectos.
+- La media es la medida principal utilizada en la comparación, mientras que la mediana se incorpora como referencia complementaria.
+- La dispersión entre provincias y la dispersión entre sucursales representan fenómenos diferentes y no deben interpretarse como equivalentes.
+- Valores de dispersión iguales a 0% en provincias con pocas sucursales no permiten concluir que una cadena mantenga precios idénticos en todo el territorio.
+- El análisis regional otorga el mismo peso a cada provincia dentro de una región. No representa población, participación de mercado, volumen de ventas ni peso económico.
+- Los precios regionales no representan el costo de una canasta de consumo ponderada.
+- La comparación de precios y dispersiones es descriptiva y no permite establecer causalidad.
+- El análisis detallado de promociones se realizó principalmente en la Etapa 1; la Etapa 3 utiliza el `precio_efectivo` ya construido y se concentra en la dimensión territorial.
+- La categorización comercial todavía debe construirse y validarse en las siguientes etapas.
+- La canasta comparable todavía no fue definida, por lo que sus criterios de selección y ponderación no forman parte de los resultados actuales.
 
 ---
 
@@ -790,7 +1011,8 @@ analisis-precios-NLP-SEPA/
 │
 ├── notebooks/
 │   ├── 01_analisis_dia_carrefour.ipynb
-│   └── 02_sucursales_dia_carrefour.ipynb
+│   ├── 02_sucursales_dia_carrefour.ipynb
+│   └── 03_precios_por_provincias.ipynb
 │
 └── outputs/
     ├── figures/      # Visualizaciones
@@ -845,14 +1067,21 @@ Las herramientas podrán ampliarse durante las etapas de NLP, Machine Learning y
 - [x] Construcción de `sucursales_dia_8`.
 - [x] Construcción de `sucursales_carrefour_8`.
 - [x] Integración de productos y sucursales para el territorio común.
+- [x] Comparación de precios por provincia.
+- [x] Construcción de universos comparables de 7 y 8 provincias.
+- [x] Revisión y control de diferencias porcentuales extremas.
+- [x] Comparación de media y mediana.
+- [x] Análisis de diferencias territoriales entre provincias.
+- [x] Análisis de dispersión entre sucursales dentro de cada provincia.
+- [x] Análisis regional de precios.
+- [x] Visualizaciones territoriales y regionales.
 
 ### 🟡 En curso
 
-- [ ] Comparación y análisis de precios por provincia.
+- [ ] Construcción de categorías de productos.
 
 ### ⬜ Pendiente
 
-- [ ] Construcción de categorías de productos.
 - [ ] Etiquetado manual de productos.
 - [ ] Procesamiento NLP.
 - [ ] Entrenamiento y evaluación de modelos de clasificación.
@@ -866,12 +1095,14 @@ Las herramientas podrán ampliarse durante las etapas de NLP, Machine Learning y
 
 # 📖 Conclusión
 
-Las primeras dos etapas establecen la base necesaria para continuar el proyecto con una estructura reproducible.
+Las tres primeras etapas establecen una base progresiva para el análisis comparativo de precios entre DIA y Carrefour.
 
 La **Etapa 1** permitió preparar el universo de productos comunes y analizar precios y promociones, diferenciando conceptos como dispersión, precio de lista, precio efectivo, profundidad y alcance promocional.
 
-La **Etapa 2** incorporó la dimensión geográfica, realizando una inspección detallada de las sucursales, corrigiendo inconsistencias en las referencias provinciales, normalizando los nombres y delimitando el territorio común entre ambas cadenas.
+La **Etapa 2** incorporó la dimensión geográfica, realizando una inspección detallada de las sucursales, corrigiendo inconsistencias relevantes en las referencias provinciales, normalizando los nombres y delimitando el territorio común entre ambas cadenas.
 
-Como resultado, se dispone de información preparada para avanzar hacia la **comparación de precios por provincia**, manteniendo la unidad de análisis producto–sucursal y conservando la trazabilidad de las transformaciones realizadas.
+La **Etapa 3** incorporó el análisis territorial de precios. Se construyeron universos comparables de 7 y 8 provincias, se controlaron diferencias porcentuales extremas, se compararon media y mediana y se analizaron tanto las diferencias entre cadenas como la dispersión territorial entre provincias y sucursales. El análisis regional mostró además que la relación de precios entre DIA y Carrefour cambia según el territorio.
 
-Las siguientes etapas incorporarán progresivamente la categorización de productos mediante etiquetado manual, NLP y Machine Learning, para finalmente construir una **canasta comparable** y reunir los principales resultados y conclusiones del proyecto.
+Como resultado, el proyecto dispone ahora de una base territorial preparada para continuar con la **categorización de productos**. La siguiente etapa se centrará en construir una clasificación comercial propia y generar una muestra etiquetada manualmente que pueda utilizarse posteriormente para el desarrollo del componente de **NLP y Machine Learning**.
+
+La **Etapa 4** comienza, por lo tanto, con el análisis territorial ya cerrado y con una estructura de datos que conserva la trazabilidad necesaria para vincular posteriormente las categorías con precios, cadenas y territorios.
