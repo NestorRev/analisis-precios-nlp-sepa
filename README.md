@@ -633,6 +633,50 @@ Se adoptó el universo de 7 provincias como referencia principal debido a la cob
 
 ---
 
+## 📍 Nivel medio de precios por provincia — universo flexible
+
+Además del universo homogéneo utilizado en la comparación principal, se calculó el nivel medio de precios de cada cadena dentro de cada provincia utilizando un **universo flexible de 8 provincias**. En este análisis no se exige que cada producto esté presente en todas las provincias: solo se requiere que pueda compararse entre DIA y Carrefour dentro de una misma provincia.
+
+Para cada combinación de `provincia + id_producto + cadena`, primero se calcula el precio medio del producto entre las sucursales disponibles. Luego se calcula la media y la mediana provincial de esos precios por producto. De esta forma, cada producto tiene el mismo peso dentro de la provincia, independientemente de cuántas sucursales lo comercialicen.
+
+### Comparación de precios medios
+
+La diferencia porcentual se calcula tomando a Carrefour como referencia:
+
+`Diferencia % = (precio_DIA - precio_Carrefour) / precio_Carrefour × 100`
+
+Los valores negativos indican un precio medio menor en DIA; los positivos indican un precio medio menor en Carrefour.
+
+| Provincia | Precio medio DIA | Precio medio Carrefour | Diferencia |
+|---|---:|---:|---:|
+| CABA | $5.125,34 | $5.493,11 | **−6,70%** |
+| Corrientes | $5.154,72 | $5.505,02 | **−6,36%** |
+| Córdoba | $5.122,80 | $5.428,62 | **−5,63%** |
+| Buenos Aires | $5.090,94 | $5.362,60 | **−5,07%** |
+| Santa Fe | $5.138,23 | $5.389,65 | **−4,66%** |
+| Entre Ríos | $5.103,19 | $5.284,00 | **−3,42%** |
+| Salta | $5.187,37 | $5.359,54 | **−3,21%** |
+| Jujuy | $4.991,47 | $4.759,10 | **+4,88%** |
+
+En **7 de las 8 provincias**, DIA presenta un precio medio inferior al de Carrefour. La mayor diferencia favorable a DIA se observa en CABA (−6,70%), seguida por Corrientes (−6,36%) y Córdoba (−5,63%). **Jujuy es la excepción**: allí, el precio medio de DIA resulta 4,88% superior al de Carrefour.
+
+La comparación de medianas mantiene el mismo sentido general: DIA presenta una mediana inferior en las mismas siete provincias, mientras que Jujuy conserva el patrón inverso. Esto aporta consistencia descriptiva al patrón, aunque la media continúa siendo la medida principal del proyecto.
+
+### Ranking provincial por cadena
+
+El ranking ordena las provincias de menor a mayor precio medio por separado para cada cadena:
+
+- **DIA:** Jujuy, Buenos Aires, Entre Ríos, Córdoba, CABA, Santa Fe, Corrientes y Salta.
+- **Carrefour:** Jujuy, Entre Ríos, Salta, Buenos Aires, Santa Fe, Córdoba, CABA y Corrientes.
+
+Jujuy registra el menor precio medio absoluto en ambas cadenas: **$4.991,47 para DIA** y **$4.759,10 para Carrefour**. Sin embargo, eso no significa que DIA sea más barata en esa provincia: la comparación directa entre cadenas muestra lo contrario.
+
+La distancia entre la provincia de menor y mayor precio medio es de aproximadamente **3,9% en DIA** (Jujuy frente a Salta) y **15,7% en Carrefour** (Jujuy frente a Corrientes). En este universo flexible, la amplitud territorial observada es mayor para Carrefour. Esta comparación es descriptiva y no identifica las causas de las diferencias.
+
+El ranking debe interpretarse con una precaución: al tratarse de un universo flexible, la cantidad de productos comparables cambia entre provincias. Por ello, describe el nivel medio del conjunto disponible en cada territorio y **no equivale a comparar una canasta idéntica de productos en las ocho provincias**.
+
+---
+
 ## 📊 Comparación de precios entre DIA y Carrefour por provincia
 
 La comparación se realizó producto contra producto dentro de cada provincia. Para cada combinación `provincia + id_producto` se calculó el precio medio observado en cada cadena y posteriormente la diferencia porcentual:
@@ -828,21 +872,21 @@ Este índice es descriptivo y no representa un índice de costo de vida, partici
 
 ## 📌 Principales hallazgos de la Etapa 3
 
-1. **DIA presenta una diferencia media favorable frente a Carrefour en las siete provincias del universo principal**, aunque la magnitud de esa diferencia cambia según el territorio.
+1. La exploración inicial identificó **19.368 pares producto–provincia** comparables. Se detectaron **33 pares extremos**, correspondientes a **5 productos**, con `|diferencia_pct| > 500%`; esos productos se excluyeron de los universos posteriores como decisión de control de valores extremos, sin afirmar que los datos originales fueran necesariamente errores.
 
-2. **La media y la mediana no cuentan exactamente la misma historia**. La mediana es considerablemente más cercana a cero y resulta ligeramente favorable a Carrefour en Buenos Aires y Salta.
+2. Se construyeron dos universos homogéneos: **2.220 productos con cobertura completa en 7 provincias** y **1.662 productos con cobertura completa en 8 provincias**. Excluir Jujuy del requisito de cobertura completa incorpora **558 productos adicionales (+33,57%)**. El universo de 7 provincias es la referencia principal y el de 8 se conserva como sensibilidad.
 
-3. **Jujuy presenta un comportamiento diferencial**, con una ventaja clara para Carrefour dentro del universo comparable de esa provincia.
+3. En el **universo flexible de 8 provincias**, DIA presenta un precio medio inferior a Carrefour en 7 provincias; Jujuy es la excepción. El ranking absoluto sitúa a Jujuy como la provincia de menor precio medio para ambas cadenas, pero la comparación relativa dentro de Jujuy favorece a Carrefour. Esto demuestra que el nivel absoluto de precios y la diferencia entre cadenas son preguntas distintas.
 
-4. **Carrefour presenta mayor dispersión territorial de los mismos productos**, con una mediana del rango de 9,21% frente al 3,61% de DIA.
+4. En la comparación producto contra producto del **universo homogéneo de 7 provincias**, la diferencia media porcentual favorece a DIA en las siete provincias. La mediana, sin embargo, es mucho más cercana a cero y resulta ligeramente favorable a Carrefour en Buenos Aires y Salta; por eso la conclusión se refiere a la diferencia media del universo y no a una ventaja uniforme en todos los productos.
 
-5. **La dispersión entre sucursales también es generalmente mayor en Carrefour**, aunque está condicionada por la cantidad de sucursales disponibles en cada provincia.
+5. Jujuy presenta un comportamiento diferencial en el universo homogéneo de 8 provincias: la diferencia media es **+8,45%**, la mediana **+8,28%**, DIA es más barato en **26,84%** de los productos y Carrefour en **70,04%**. Esto respalda mantener el universo de 8 provincias como análisis de sensibilidad.
 
-6. **El comportamiento regional no es uniforme**: DIA presenta precios medios inferiores a Carrefour en Metropolitana y Centro–Litoral, mientras que Carrefour presenta precios medios inferiores en NOA.
+6. Carrefour presenta mayor dispersión territorial para los mismos productos: la mediana del rango porcentual entre provincias es **9,21%**, frente a **3,61%** para DIA. La dispersión entre sucursales dentro de las provincias también es generalmente mayor en Carrefour, aunque debe interpretarse teniendo en cuenta la cobertura desigual de sucursales y los casos con pocas observaciones.
 
-7. Los casos con diferencias superiores al 500% se concentraron en **5 productos**, que fueron excluidos de los universos posteriores para controlar su influencia sobre los indicadores agregados.
+7. El análisis regional, realizado sobre los **1.662 productos con cobertura completa en las ocho provincias** y otorgando el mismo peso a cada provincia dentro de su región, muestra que DIA presenta precios medios inferiores en **Metropolitana (−4,54%)** y **Centro–Litoral (−3,34%)**. En **NOA**, Carrefour presenta un precio medio inferior, con una diferencia de **+2,79%** para DIA.
 
-8. La comparación territorial muestra que **no existe una única relación de precios independiente de la ubicación**. La cadena con menor precio relativo puede variar según la provincia o región analizada.
+8. En conjunto, los resultados muestran que la relación de precios entre DIA y Carrefour depende del territorio y de la escala de análisis. La comparación del nivel medio provincial, la comparación producto a producto y los indicadores de dispersión son complementarios y no deben interpretarse como si respondieran a una misma pregunta.
 
 ---
 
@@ -1101,7 +1145,7 @@ La **Etapa 1** permitió preparar el universo de productos comunes y analizar pr
 
 La **Etapa 2** incorporó la dimensión geográfica, realizando una inspección detallada de las sucursales, corrigiendo inconsistencias relevantes en las referencias provinciales, normalizando los nombres y delimitando el territorio común entre ambas cadenas.
 
-La **Etapa 3** incorporó el análisis territorial de precios. Se construyeron universos comparables de 7 y 8 provincias, se controlaron diferencias porcentuales extremas, se compararon media y mediana y se analizaron tanto las diferencias entre cadenas como la dispersión territorial entre provincias y sucursales. El análisis regional mostró además que la relación de precios entre DIA y Carrefour cambia según el territorio.
+La **Etapa 3** incorporó el análisis territorial de precios. Se construyeron universos comparables de 7 y 8 provincias, se controlaron diferencias porcentuales extremas y se compararon media y mediana. Además, se incorporó un análisis flexible del nivel medio de precios por provincia y un ranking independiente para cada cadena. Estos resultados se distinguen de la comparación producto a producto en el universo homogéneo. También se analizaron la dispersión territorial entre provincias y sucursales, y las diferencias regionales, que muestran que la relación de precios entre DIA y Carrefour cambia según el territorio y la escala de análisis.
 
 Como resultado, el proyecto dispone ahora de una base territorial preparada para continuar con la **categorización de productos**. La siguiente etapa se centrará en construir una clasificación comercial propia y generar una muestra etiquetada manualmente que pueda utilizarse posteriormente para el desarrollo del componente de **NLP y Machine Learning**.
 
