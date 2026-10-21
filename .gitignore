@@ -8,6 +8,9 @@
 # EXCEPCIÓN: permitir CSV dentro de metadata
 !data/metadata/*.csv
 
+# Ignorar archivos temporales de Excel
+~$*.xlsx
+
 # Ignorar archivos temporales de Jupyter
 .ipynb_checkpoints/
 

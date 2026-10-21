@@ -66,8 +66,8 @@ El proyecto busca demostrar competencias en:
 | 1 | Preparación, precios y promociones | ✅ Completada |
 | 2 | Preparación de sucursales para análisis geográfico | ✅ Completada |
 | 3 | Comparación y análisis de precios por provincia | ✅ Completada |
-| 4 | Construcción de categorías de productos | 🟡 En curso  |
-| 5 | Categorización de productos mediante NLP y ML | ⬜ Pendiente |
+| 4 | Construcción de categorías de productos y etiquetado manual | ✅ Completada |
+| 5 | Categorización de productos mediante NLP y ML | ✅ Completada |
 | 6 | Canasta comparable y conclusiones finales | ⬜ Pendiente |
 
 La estructura del proyecto está organizada de manera incremental: cada etapa prepara los datos y resultados necesarios para la siguiente.
@@ -149,6 +149,16 @@ productos_carrefour_procesado.parquet
 ```
 
 Estos archivos contienen el universo de productos utilizado en la comparación desarrollado durante la primera etapa.
+
+Como parte de las Etapas 4 y 5 se utilizan, además, los siguientes archivos en la misma carpeta:
+
+```text
+productos_etiquetados_parcialmente.xlsx
+productos_media_y_categorizados.parquet
+```
+
+- `productos_etiquetados_parcialmente.xlsx`: reúne los 2.220 productos del universo principal y las 400 categorías asignadas manualmente en la Etapa 4. Es la entrada del notebook de clasificación.
+- `productos_media_y_categorizados.parquet`: salida definitiva de la Etapa 5; contiene los 2.220 productos con categoría final, descripción de Carrefour y precios medios de ambas cadenas. Será la entrada de la Etapa 6.
 
 El formato **Parquet** permite trabajar con los datos procesados de manera más eficiente que con los archivos CSV originales y facilita la continuidad entre notebooks.
 
@@ -892,48 +902,196 @@ Este índice es descriptivo y no representa un índice de costo de vida, partici
 
 # 🏷️ Etapa 4 — Construcción de categorías de productos
 
-**Estado: 🟡 En curso**
+**Estado: ✅ Completada**
 
-La Etapa 4 comienza una vez finalizado el análisis territorial de precios.
+La Etapa 4 tuvo como objetivo construir una clasificación comercial propia para el universo principal de **2.220 productos comparables**, utilizando como base el dataset de precios de siete provincias definido en la Etapa 3. Para cada producto se consolidó la información descriptiva y la marca reportada por las cadenas, junto con los precios medios de DIA y Carrefour.
 
-SEPA no proporciona directamente una clasificación comercial suficientemente estructurada para el análisis que se pretende realizar. Por este motivo, se construirá una clasificación propia de productos.
+Como SEPA no proporciona una clasificación comercial suficientemente detallada y homogénea para los objetivos del proyecto, se definió una taxonomía propia de cinco categorías. Luego se preparó un archivo para realizar el etiquetado manual y se verificó formalmente la consistencia de las etiquetas asignadas.
 
-El primer paso será definir las categorías y establecer criterios claros para su asignación. Posteriormente se seleccionará una muestra de productos que será **etiquetada manualmente**.
+## Categorías definidas
 
-Estas etiquetas servirán como referencia para la etapa posterior de clasificación automática mediante NLP y Machine Learning.
+| Categoría | Alcance | Ejemplos |
+|---|---|---|
+| **ALIMENTOS** | Productos destinados al consumo humano, incluidos frescos, refrigerados, congelados, secos, conservables y golosinas. | Carnes, frutas, verduras, lácteos, arroz, fideos, galletitas, chocolates y alfajores. |
+| **BEBIDAS** | Productos destinados principalmente a ser consumidos como bebida, independientemente de su formato. | Agua, gaseosas, jugos, bebidas energéticas y jugo en polvo. |
+| **PERFUMERIA Y LIMPIEZA** | Productos de higiene corporal, cuidado personal, limpieza del hogar y absorbentes. | Shampoo, jabón, pasta dental, desodorante, pañales, papel higiénico, rollo de cocina, detergente y lavandina. |
+| **MASCOTAS** | Productos destinados a la alimentación, higiene y cuidado de animales domésticos. | Alimento balanceado, snacks, arena sanitaria y accesorios básicos para mascotas. |
+| **OTROS** | Categoría residual para artículos que no corresponden a las categorías anteriores. | Pilas, juguetes, descartables, bombillas, film, aluminio y artículos de bazar. |
 
-La categorización manual deberá mantener criterios consistentes y suficientemente claros para que las categorías puedan ser reproducidas y utilizadas como variable de análisis en las siguientes etapas.
+### Reglas de clasificación
+
+- Cada producto recibe una sola categoría, según su naturaleza y finalidad principal.
+- Los alimentos para consumo humano se clasifican en **ALIMENTOS**, incluidos los lácteos y la leche en polvo.
+- Los jugos en polvo se clasifican en **BEBIDAS**.
+- La higiene personal y la limpieza del hogar se agrupan en **PERFUMERIA Y LIMPIEZA**.
+- Los productos destinados a animales domésticos se mantienen separados en **MASCOTAS**.
+- Los artículos de uso general que no encajan en las categorías anteriores se asignan a **OTROS**.
+- Los criterios se aplican de forma uniforme a los productos de ambas cadenas.
+
+La estructura de cinco categorías simplifica el etiquetado manual y conserva una separación útil entre los principales rubros comerciales. La categoría **OTROS** es residual y heterogénea, mientras que **MASCOTAS** tiene una representación menor en la muestra etiquetada; ambas circunstancias deberán considerarse al evaluar el modelo en la Etapa 5.
+
+## Etiquetado manual y validación
+
+Se preparó un archivo con los **2.220 productos** para asignar manualmente una categoría a cada uno. Posteriormente, se cargó la versión parcialmente etiquetada y se controló que las etiquetas correspondieran a la taxonomía oficial.
+
+Al finalizar esta etapa, el estado del etiquetado es el siguiente:
+
+| Indicador | Resultado |
+|---|---:|
+| Universo total de productos | **2.220** |
+| Productos etiquetados manualmente | **400 (18,0%)** |
+| Productos pendientes de clasificación | **1.820 (82,0%)** |
+| Etiquetas fuera de la taxonomía | **0** |
+
+La distribución de los 400 productos etiquetados es:
+
+| Categoría | Productos | Porcentaje |
+|---|---:|---:|
+| ALIMENTOS | 184 | 46,0% |
+| BEBIDAS | 62 | 15,5% |
+| PERFUMERIA Y LIMPIEZA | 115 | 28,75% |
+| MASCOTAS | 27 | 6,75% |
+| OTROS | 12 | 3,0% |
+| **Total** | **400** | **100%** |
+
+El control confirma que las 400 etiquetas asignadas pertenecen a las cinco categorías permitidas. Esto verifica la **validez formal** de las etiquetas, pero no demuestra por sí solo que cada producto haya sido clasificado semánticamente de manera correcta. La distribución tampoco está equilibrada: en particular, **MASCOTAS** y **OTROS** tienen menos ejemplos. Estas limitaciones se tendrán en cuenta durante el entrenamiento, la evaluación por categoría y la revisión de errores del modelo.
+
+La Etapa 4 queda cerrada con una taxonomía definida, reglas de asignación documentadas y una primera muestra etiquetada manualmente. La clasificación automática del resto del universo corresponde a la Etapa 5.
 
 ---
 
 # 🤖 Etapa 5 — Categorización de productos mediante NLP y ML
 
-**Estado: ⬜ Pendiente**
+**Estado: ✅ Completada**
 
-Una vez construida la clasificación y etiquetada manualmente una muestra de productos, se aplicarán técnicas de **Procesamiento de Lenguaje Natural (NLP)** para transformar las descripciones comerciales en variables utilizables por modelos de Machine Learning.
+La quinta etapa completó la clasificación comercial del universo principal de **2.220 productos** definido en la Etapa 3, a partir de las cinco categorías y las **400 etiquetas manuales** preparadas en la Etapa 4. Para ello se utilizaron las descripciones de Carrefour y DIA y la marca de cada producto como información textual de entrada. Los precios no se utilizaron como características de los modelos de clasificación.
 
-El flujo previsto es:
+El objetivo fue comparar diferentes representaciones de texto y clasificadores supervisados, elegir una alternativa adecuada para un conjunto etiquetado pequeño y desbalanceado, y categorizar los **1.820 productos restantes** para preparar la Etapa 6.
+
+## Preparación de los datos y estrategia de evaluación
+
+- Se combinaron `descripcion_carrefour`, `descripcion_dia` y `productos_marca` en una variable de texto por producto.
+- Los **400 productos etiquetados** se dividieron en **320 de entrenamiento (80%)** y **80 de prueba (20%)**, mediante una partición estratificada por categoría y con `random_state=42`.
+- Los vectorizadores se ajustaron sobre los datos de entrenamiento para evitar que el conjunto de prueba participara en el aprendizaje de la representación.
+- Se utilizó **Macro F1** como métrica principal, complementada con Accuracy, Weighted F1, informes por categoría y matrices de confusión. Macro F1 da el mismo peso a cada una de las cinco categorías, aun cuando sus cantidades sean diferentes.
+
+## Modelos evaluados
+
+Se compararon cinco enfoques:
+
+1. **Modelo 1:** TF-IDF + LogisticRegression, con balanceo de clases.
+2. **Modelo 2:** TF-IDF + LinearSVC, con balanceo de clases.
+3. **Modelo 3:** Doc2Vec + XGBoost, sin balanceo explícito de clases.
+4. **Modelo 4:** TF-IDF + LSA (TruncatedSVD) + LinearSVC, con balanceo de clases.
+5. **Modelo 5:** TF-IDF de palabras y caracteres + LinearSVC, con balanceo de clases.
+
+### Resultados en el conjunto de prueba
+
+Todos los modelos se evaluaron con los mismos **80 productos de prueba**.
+
+| Modelo | Accuracy | Macro F1 | Weighted F1 |
+|---|---:|---:|---:|
+| 1. TF-IDF + LogisticRegression | 0,9250 | 0,9065 | 0,9239 |
+| 2. TF-IDF + LinearSVC | 0,9250 | 0,8559 | 0,9192 |
+| 3. Doc2Vec + XGBoost | 0,7750 | 0,7085 | 0,7676 |
+| 4. TF-IDF + LSA + LinearSVC | 0,9250 | 0,8793 | 0,9271 |
+| **5. TF-IDF (palabras + caracteres) + LinearSVC** | **0,9625** | **0,8878** | **0,9568** |
+
+El Modelo 5 obtuvo **77 aciertos sobre 80 productos** y el mayor Accuracy del conjunto de prueba. Sin embargo, el Modelo 1 obtuvo un Macro F1 superior en esta partición. La diferencia está influida por la categoría **OTROS**, que contiene solamente tres ejemplos de prueba: un único acierto o error modifica considerablemente sus métricas.
+
+## Validación cruzada y selección del modelo
+
+Para disponer de una comparación menos dependiente de una sola partición, se realizó **validación cruzada estratificada repetida de 5 particiones × 3 repeticiones** sobre los 400 productos etiquetados. Se incluyeron los Modelos 1, 2, 4 y 5. El Modelo 3 quedó excluido de este análisis por su menor desempeño inicial y su mayor complejidad computacional; esta decisión no equivale a una comparación de validación cruzada con dicho modelo.
+
+| Modelo | Accuracy promedio | Macro F1 promedio | Desvío Macro F1 | Weighted F1 promedio |
+|---|---:|---:|---:|---:|
+| **5. TF-IDF (palabras + caracteres) + LinearSVC** | **0,947** | **0,911** | 0,061 | **0,944** |
+| 2. TF-IDF + LinearSVC | 0,907 | 0,858 | 0,049 | 0,904 |
+| 4. TF-IDF + LSA + LinearSVC | 0,898 | 0,849 | 0,051 | 0,895 |
+| 1. TF-IDF + LogisticRegression | 0,896 | 0,847 | 0,059 | 0,893 |
+
+El **Modelo 5** obtuvo el mayor Macro F1 promedio (**0,911**) y superó al Modelo 1 en **13 de las 15 evaluaciones**. Por ello se seleccionó **TF-IDF de palabras y caracteres + LinearSVC** como clasificador definitivo. La selección se apoya en esta validación repetida, aunque no sustituye una evaluación externa completamente independiente.
+
+## Clasificación automática y auditoría
+
+Tras la comparación, el modelo ganador se reentrenó con los **400 productos etiquetados** y se aplicó a los **1.820 productos sin categoría**.
+
+La distribución inicial de las predicciones automáticas fue:
+
+| Categoría predicha | Productos | Porcentaje |
+|---|---:|---:|
+| ALIMENTOS | 892 | 49,01% |
+| PERFUMERIA Y LIMPIEZA | 598 | 32,86% |
+| BEBIDAS | 318 | 17,47% |
+| MASCOTAS | 11 | 0,60% |
+| OTROS | 1 | 0,05% |
+| **Total** | **1.820** | **100%** |
+
+Se realizó una **auditoría exploratoria** que incluyó la inspección de los productos predichos en las categorías minoritarias, la revisión de candidatos a estas categorías y una muestra aleatoria reproducible de **15 productos por cada categoría mayoritaria** (45 en total).
+
+Durante la inspección se detectaron y corrigieron **dos clasificaciones incorrectas**:
+
+| Producto | Predicción inicial | Categoría final |
+|---|---|---|
+| Palitos para brochette Ideal | ALIMENTOS | OTROS |
+| Kit de limpieza Hants | ALIMENTOS | PERFUMERIA Y LIMPIEZA |
+
+Las correcciones se realizaron mediante `id_producto`, conservando las predicciones originales por separado durante el proceso de auditoría. La inspección no identificó errores adicionales en las muestras revisadas, pero **no constituye una validación exhaustiva** de las 1.820 predicciones.
+
+## Consolidación y archivo final
+
+Se integraron las categorías originales de los **400 productos etiquetados manualmente** con las **1.820 categorías predichas**, incorporando las dos correcciones de la auditoría.
+
+El archivo definitivo es:
 
 ```text
-Descripciones de productos
-        ↓
-Limpieza y preprocesamiento de texto
-        ↓
-Representación numérica del texto
-        ↓
-Entrenamiento de modelos
-        ↓
-Evaluación
-        ↓
-Selección del modelo
-        ↓
-Categorización automática
+data/processed/productos_media_y_categorizados.parquet
 ```
 
-Entre las técnicas que podrán evaluarse se encuentran representaciones como **TF-IDF** y diferentes modelos de clasificación supervisada.
+Contiene **2.220 productos** y exactamente cinco columnas:
 
-La evaluación utilizará métricas apropiadas para clasificación, como Accuracy, Precision, Recall, F1-score y matriz de confusión. La elección definitiva de técnicas y modelos dependerá de los resultados obtenidos durante la experimentación.
+| Columna | Contenido |
+|---|---|
+| `id_producto` | Identificador único del producto |
+| `descripcion_carrefour` | Descripción comercial utilizada como referencia |
+| `precio_medio_carrefour` | Precio medio del producto en Carrefour |
+| `precio_medio_dia` | Precio medio del producto en DIA |
+| `categoria` | Categoría definitiva, incluidas las correcciones manuales |
 
+Antes de exportar, el notebook verifica que existan **2.220 registros**, que cada `id_producto` sea único, que no falten categorías ni precios medios y que todas las categorías pertenezcan a la taxonomía definida.
+
+Este archivo constituye la entrada principal de la **Etapa 6: construcción de la canasta comparable**. Sus precios son medias consolidadas por cadena; **no contiene el desglose provincial necesario para calcular por sí solo canastas específicas por provincia**.
+
+## Reproducibilidad de Doc2Vec
+
+Durante el desarrollo se observaron diferencias entre ejecuciones del Modelo 3, relacionadas con la inicialización y la inferencia aleatorias de Doc2Vec. Para controlar esta variación se fijaron las semillas de NumPy y Gensim, se configuró `workers=1` y se estableció **`PYTHONHASHSEED=42` antes de iniciar Python**. Con esta configuración se verificaron resultados consistentes en dos ejecuciones del notebook bajo el mismo entorno.
+
+En **Windows, usando PowerShell y Visual Studio Code**, una forma de iniciar el proyecto es abrir una terminal en la carpeta raíz y ejecutar:
+
+```powershell
+$env:PYTHONHASHSEED="42"
+code .
+```
+
+Después se debe seleccionar o reiniciar el kernel de Python desde esa sesión de VS Code y ejecutar el notebook. El valor puede comprobarse en Python con:
+
+```python
+import os
+print(os.environ.get("PYTHONHASHSEED", "No configurada"))
+```
+
+El resultado esperado es `42`. Esta variable se aplica a los procesos iniciados desde esa terminal y **no modifica permanentemente Windows ni Python**. La reproducibilidad puede depender también de las versiones del entorno; no se garantiza identidad de resultados entre instalaciones diferentes.
+
+## Limitaciones de la etapa
+
+- El entrenamiento partió de una muestra manual de **400 productos**, que no fue seleccionada aleatoriamente y tiene categorías desbalanceadas.
+- El conjunto de prueba es pequeño (**80 productos**) y **OTROS** cuenta solamente con tres casos. Las métricas de esta clase son especialmente sensibles a errores individuales.
+- La exploración y la elección de modelos utilizaron el mismo conjunto etiquetado; la validación cruzada repetida respalda la selección, pero **no proporciona una estimación de desempeño completamente independiente del proceso de selección**.
+- Los Modelos 1, 2, 4 y 5 aplicaron balanceo de clases; el Modelo 3 no, por lo que no se aisló el efecto de esta diferencia.
+- La comparación de costo computacional fue cualitativa; no se midieron tiempos de entrenamiento.
+- La auditoría fue parcial y pueden persistir errores de categorización entre los productos no revisados.
+
+La Etapa 5 finaliza con el universo principal categorizado y un archivo validado mediante controles de integridad, listo para continuar con la selección y comparación de productos de la canasta.
 ---
 
 # 🛒 Etapa 6 — Canasta comparable y conclusiones finales
@@ -973,6 +1131,7 @@ A lo largo de las distintas etapas se utilizan gráficos para comunicar:
 - diferencias de precios por provincia;
 - comportamiento territorial y regional;
 - comportamiento de categorías;
+- matrices de confusión y comparación de modelos de clasificación;
 - comparación de la canasta;
 - resultados finales.
 
@@ -1002,6 +1161,11 @@ El proyecto mantiene separadas diferentes dimensiones del análisis para evitar 
 | Universo de sensibilidad | 8 provincias |
 | Control de valores extremos | `|diferencia_pct| > 500%` |
 | Dispersión territorial | Rango porcentual entre provincias |
+| Taxonomía comercial | Cinco categorías definidas en la Etapa 4 |
+| Métrica principal de clasificación | Macro F1 |
+| Selección del clasificador | Validación cruzada estratificada repetida (5 particiones × 3 repeticiones) |
+| Modelo seleccionado | TF-IDF de palabras + caracteres + LinearSVC |
+| Dataset categorizado definitivo | `productos_media_y_categorizados.parquet` |
 
 Las interpretaciones se plantean de forma descriptiva y se evita atribuir causalidad cuando los datos no permiten establecerla.
 
@@ -1028,7 +1192,12 @@ Los resultados del proyecto deben interpretarse teniendo en cuenta:
 - Los precios regionales no representan el costo de una canasta de consumo ponderada.
 - La comparación de precios y dispersiones es descriptiva y no permite establecer causalidad.
 - El análisis detallado de promociones se realizó principalmente en la Etapa 1; la Etapa 3 utiliza el `precio_efectivo` ya construido y se concentra en la dimensión territorial.
-- La categorización comercial todavía debe construirse y validarse en las siguientes etapas.
+- La muestra etiquetada manualmente contiene **400 de los 2.220 productos** del universo principal; los **1.820 restantes fueron categorizados automáticamente en la Etapa 5**, con dos correcciones manuales posteriores.
+- La distribución de las categorías en la muestra manual es desigual, especialmente en MASCOTAS (27 productos) y OTROS (12 productos). La validez formal de las etiquetas no garantiza por sí sola su corrección semántica.
+- Las métricas de clasificación se estimaron sobre un conjunto de prueba reducido y mediante validación cruzada repetida dentro del conjunto etiquetado, sin evaluación completamente independiente después de la selección.
+- La auditoría de las predicciones fue exploratoria y no garantiza que todos los productos estén clasificados correctamente.
+- Doc2Vec necesitó controles adicionales de aleatoriedad, incluido `PYTHONHASHSEED=42` al iniciar Python, para reproducir los resultados observados en el mismo entorno.
+- El archivo final de la Etapa 5 conserva precios medios por cadena, no precios diferenciados por provincia. Para una eventual canasta provincial será necesario recurrir a los datos territoriales de etapas anteriores.
 - La canasta comparable todavía no fue definida, por lo que sus criterios de selección y ponderación no forman parte de los resultados actuales.
 
 ---
@@ -1044,19 +1213,19 @@ analisis-precios-NLP-SEPA/
 │
 ├── data/
 │   ├── raw/          # Datos originales descargados de SEPA
-│   ├── processed/    # Datos procesados en formato Parquet
+│   ├── processed/    # Datos procesados
 │   └── metadata/     # Archivos auxiliares de referencia
 │
 ├── src/
 │   ├── inspeccion.py # Funciones auxiliares de inspección
-│   ├── limpieza/     # Procesos de limpieza, si fueran necesarios
-│   ├── nlp/          # Procesamiento de texto
-│   └── ml/           # Modelos y utilidades de ML
+│   └── metricas_ml.py # Métricas y matrices de confusión (Etapa 5)
 │
 ├── notebooks/
 │   ├── 01_analisis_dia_carrefour.ipynb
 │   ├── 02_sucursales_dia_carrefour.ipynb
-│   └── 03_precios_por_provincias.ipynb
+│   ├── 03_precios_por_provincias.ipynb
+│   ├── 04_construccion_categorias.ipynb
+│   └── 05_clasificacion_productos_nlp_ml.ipynb
 │
 └── outputs/
     ├── figures/      # Visualizaciones
@@ -1078,10 +1247,12 @@ El proyecto utiliza principalmente:
 - **Seaborn**
 - **Scikit-learn**
 - **NLTK / herramientas de procesamiento de texto**
+- **Gensim** (Doc2Vec)
+- **XGBoost**
 - **Jupyter Notebook**
 - **Parquet**
 
-Las herramientas podrán ampliarse durante las etapas de NLP, Machine Learning y construcción de la canasta.
+Estas herramientas se utilizaron en la preparación de datos, los análisis de precios y la comparación de modelos NLP/ML. La Etapa 6 podrá incorporar herramientas adicionales para la canasta y las visualizaciones finales.
 
 ---
 
@@ -1120,16 +1291,30 @@ Las herramientas podrán ampliarse durante las etapas de NLP, Machine Learning y
 - [x] Análisis regional de precios.
 - [x] Visualizaciones territoriales y regionales.
 
-### 🟡 En curso
+### ✅ Completado
 
-- [ ] Construcción de categorías de productos.
+- [x] Construcción de la taxonomía comercial de cinco categorías.
+- [x] Documentación de reglas de asignación de categorías.
+- [x] Preparación del universo de 2.220 productos para el etiquetado manual.
+- [x] Etiquetado manual inicial de 400 productos.
+- [x] Validación formal de las etiquetas asignadas y control de categorías inválidas.
+- [x] Revisión de la distribución de categorías en la muestra etiquetada.
 
-### ⬜ Pendiente
+### ✅ Completado — Etapa 5
 
-- [ ] Etiquetado manual de productos.
-- [ ] Procesamiento NLP.
-- [ ] Entrenamiento y evaluación de modelos de clasificación.
-- [ ] Categorización automática del universo de productos.
+- [x] Preparación de textos a partir de descripciones y marcas.
+- [x] Procesamiento y representación numérica del texto mediante NLP.
+- [x] Entrenamiento y evaluación de cinco modelos de clasificación.
+- [x] Comparación mediante Accuracy, Macro F1, Weighted F1 y matrices de confusión.
+- [x] Validación cruzada estratificada repetida de los modelos seleccionados.
+- [x] Selección de TF-IDF (palabras + caracteres) + LinearSVC.
+- [x] Categorización automática de los 1.820 productos pendientes.
+- [x] Auditoría exploratoria y corrección manual de dos predicciones.
+- [x] Consolidación y exportación de los 2.220 productos categorizados.
+- [x] Documentación de la reproducibilidad de Doc2Vec.
+
+### ⬜ Pendiente — Etapa 6
+
 - [ ] Construcción de la canasta comparable.
 - [ ] Análisis final de la canasta.
 - [ ] Visualizaciones finales.
@@ -1139,7 +1324,7 @@ Las herramientas podrán ampliarse durante las etapas de NLP, Machine Learning y
 
 # 📖 Conclusión
 
-Las tres primeras etapas establecen una base progresiva para el análisis comparativo de precios entre DIA y Carrefour.
+Las cinco primeras etapas establecen una base progresiva para el análisis comparativo de precios entre DIA y Carrefour y la clasificación comercial de sus productos.
 
 La **Etapa 1** permitió preparar el universo de productos comunes y analizar precios y promociones, diferenciando conceptos como dispersión, precio de lista, precio efectivo, profundidad y alcance promocional.
 
@@ -1147,6 +1332,8 @@ La **Etapa 2** incorporó la dimensión geográfica, realizando una inspección 
 
 La **Etapa 3** incorporó el análisis territorial de precios. Se construyeron universos comparables de 7 y 8 provincias, se controlaron diferencias porcentuales extremas y se compararon media y mediana. Además, se incorporó un análisis flexible del nivel medio de precios por provincia y un ranking independiente para cada cadena. Estos resultados se distinguen de la comparación producto a producto en el universo homogéneo. También se analizaron la dispersión territorial entre provincias y sucursales, y las diferencias regionales, que muestran que la relación de precios entre DIA y Carrefour cambia según el territorio y la escala de análisis.
 
-Como resultado, el proyecto dispone ahora de una base territorial preparada para continuar con la **categorización de productos**. La siguiente etapa se centrará en construir una clasificación comercial propia y generar una muestra etiquetada manualmente que pueda utilizarse posteriormente para el desarrollo del componente de **NLP y Machine Learning**.
+Como resultado de la **Etapa 4**, el proyecto definió una taxonomía comercial propia de cinco categorías y preparó una muestra de **400 productos etiquetados manualmente** sobre un universo de **2.220**, como base para el aprendizaje supervisado. La distribución de las etiquetas era desigual, por lo que la evaluación posterior debía prestar especial atención a las categorías minoritarias.
 
-La **Etapa 4** comienza, por lo tanto, con el análisis territorial ya cerrado y con una estructura de datos que conserva la trazabilidad necesaria para vincular posteriormente las categorías con precios, cadenas y territorios.
+La **Etapa 5** permitió entrenar y evaluar cinco enfoques de clasificación de textos, comparar sus resultados y seleccionar **TF-IDF de palabras y caracteres + LinearSVC** mediante validación cruzada repetida. El modelo elegido se aplicó a los **1.820 productos pendientes**, se realizó una auditoría exploratoria y se corrigieron manualmente dos clasificaciones. El resultado es un archivo Parquet con los **2.220 productos categorizados**, sus descripciones comerciales y los precios medios de ambas cadenas. También se documentaron las condiciones de reproducibilidad necesarias para Doc2Vec.
+
+Con las **Etapas 1 a 5 completadas**, el proyecto cuenta con una base preparada para desarrollar la **Etapa 6: canasta comparable y conclusiones finales**. Los resultados de clasificación y precios deben interpretarse dentro del alcance de los datos y las limitaciones metodológicas documentadas.
