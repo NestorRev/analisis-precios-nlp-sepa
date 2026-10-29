@@ -25,6 +25,34 @@ El objetivo es construir un análisis **reproducible, documentado y basado en da
 
 ---
 
+## ⭐ Resultados destacados
+
+| Indicador | Resultado |
+|---|---|
+| Registros de productos de origen | **Más de 7,6 millones**, entre ambas cadenas |
+| Universo principal comparable | **2.220 productos idénticos**, presentes en las dos cadenas de **7 provincias** |
+| Clasificación comercial | **5 categorías**; 400 etiquetas manuales y 1.820 asignaciones automáticas |
+| Mejor modelo NLP/ML seleccionado | **TF-IDF (palabras + caracteres) + LinearSVC**, Macro F1 medio de **0,911** en validación cruzada repetida |
+| Precio medio de los 2.220 artículos | **$5.102,43 DIA** frente a **$5.416,17 Carrefour** (**−5,79 %**) |
+| Canasta exploratoria de 33 productos | **$147.749,30 DIA** frente a **$150.381,92 Carrefour** (**−1,75 %**) |
+| Canasta por provincia | DIA presenta menor costo en **4 provincias**; Carrefour, en **3** |
+
+Estas cifras corresponden a los **datos SEPA de julio de 2026** y a los universos definidos en cada análisis. La canasta de 33 artículos es una selección intencional de **una unidad comercial por producto**, sin ponderaciones de consumo; no representa una canasta básica oficial ni precios actuales.
+
+### Visualizaciones del resultado final
+
+**Comparación del costo de la canasta seleccionada**
+
+![Costo de la canasta de 33 productos: DIA frente a Carrefour](outputs/figures/etapa6_costo_total_canasta.png)
+
+**Diferencias porcentuales del costo de la misma canasta por provincia**
+
+![Diferencia porcentual DIA-Carrefour para la misma canasta en las siete provincias](outputs/figures/etapa6_diferencia_canasta_provincias.png)
+
+> Las figuras se exportan desde `notebooks/06_canasta_comparable_conclusiones.ipynb`. Para que se muestren en GitHub, deben estar disponibles en `outputs/figures/` con esos nombres.
+
+---
+
 ## 🎯 Objetivos
 
 Los objetivos generales del proyecto son:
@@ -68,7 +96,7 @@ El proyecto busca demostrar competencias en:
 | 3 | Comparación y análisis de precios por provincia | ✅ Completada |
 | 4 | Construcción de categorías de productos y etiquetado manual | ✅ Completada |
 | 5 | Categorización de productos mediante NLP y ML | ✅ Completada |
-| 6 | Canasta comparable y conclusiones finales | ⬜ Pendiente |
+| 6 | Canasta comparable y conclusiones finales | ✅ Completada |
 
 La estructura del proyecto está organizada de manera incremental: cada etapa prepara los datos y resultados necesarios para la siguiente.
 
@@ -150,15 +178,23 @@ productos_carrefour_procesado.parquet
 
 Estos archivos contienen el universo de productos utilizado en la comparación desarrollado durante la primera etapa.
 
-Como parte de las Etapas 4 y 5 se utilizan, además, los siguientes archivos en la misma carpeta:
+Entre los archivos utilizados en las **Etapas 3 a 6** también se encuentran:
 
 ```text
+precios_producto_provincia_7.parquet
 productos_etiquetados_parcialmente.xlsx
 productos_media_y_categorizados.parquet
+catalogo_seleccion_canasta.xlsx
+canasta_seleccionada.xlsx
 ```
 
-- `productos_etiquetados_parcialmente.xlsx`: reúne los 2.220 productos del universo principal y las 400 categorías asignadas manualmente en la Etapa 4. Es la entrada del notebook de clasificación.
-- `productos_media_y_categorizados.parquet`: salida definitiva de la Etapa 5; contiene los 2.220 productos con categoría final, descripción de Carrefour y precios medios de ambas cadenas. Será la entrada de la Etapa 6.
+- `precios_producto_provincia_7.parquet`: precios efectivos medios por producto, provincia y cadena del universo homogéneo de 2.220 productos; se reutiliza para comparar el costo provincial de la canasta.
+- `productos_etiquetados_parcialmente.xlsx`: reúne los 2.220 productos del universo principal y las 400 categorías asignadas manualmente en la Etapa 4; es la entrada del notebook de clasificación.
+- `productos_media_y_categorizados.parquet`: salida de la Etapa 5, con los 2.220 productos, su categoría, descripción de Carrefour y precios medios consolidados de ambas cadenas; es la base principal de la Etapa 6.
+- `catalogo_seleccion_canasta.xlsx`: catálogo auxiliar de los 2.220 artículos con **solo ID y descripción**, sin precios, generado para elegir la canasta.
+- `canasta_seleccionada.xlsx`: selección manual definitiva de **33 productos**, con `id_producto` y `descripcion_carrefour`, sin precios; estos se incorporan después por ID desde el Parquet.
+
+Los archivos auxiliares Excel de la canasta permiten documentar y reproducir la selección sin visualizar el precio de ninguna cadena durante esa decisión.
 
 El formato **Parquet** permite trabajar con los datos procesados de manera más eficiente que con los archivos CSV originales y facilita la continuidad entre notebooks.
 
@@ -672,18 +708,11 @@ En **7 de las 8 provincias**, DIA presenta un precio medio inferior al de Carref
 
 La comparación de medianas mantiene el mismo sentido general: DIA presenta una mediana inferior en las mismas siete provincias, mientras que Jujuy conserva el patrón inverso. Esto aporta consistencia descriptiva al patrón, aunque la media continúa siendo la medida principal del proyecto.
 
-### Ranking provincial por cadena
+### Alcance de la comparación provincial
 
-El ranking ordena las provincias de menor a mayor precio medio por separado para cada cadena:
+El universo flexible permite comparar el nivel medio de precios entre **DIA y Carrefour dentro de cada provincia**, porque ambas cadenas se evalúan sobre los mismos productos disponibles en ese territorio.
 
-- **DIA:** Jujuy, Buenos Aires, Entre Ríos, Córdoba, CABA, Santa Fe, Corrientes y Salta.
-- **Carrefour:** Jujuy, Entre Ríos, Salta, Buenos Aires, Santa Fe, Córdoba, CABA y Corrientes.
-
-Jujuy registra el menor precio medio absoluto en ambas cadenas: **$4.991,47 para DIA** y **$4.759,10 para Carrefour**. Sin embargo, eso no significa que DIA sea más barata en esa provincia: la comparación directa entre cadenas muestra lo contrario.
-
-La distancia entre la provincia de menor y mayor precio medio es de aproximadamente **3,9% en DIA** (Jujuy frente a Salta) y **15,7% en Carrefour** (Jujuy frente a Corrientes). En este universo flexible, la amplitud territorial observada es mayor para Carrefour. Esta comparación es descriptiva y no identifica las causas de las diferencias.
-
-El ranking debe interpretarse con una precaución: al tratarse de un universo flexible, la cantidad de productos comparables cambia entre provincias. Por ello, describe el nivel medio del conjunto disponible en cada territorio y **no equivale a comparar una canasta idéntica de productos en las ocho provincias**.
+Sin embargo, la **cantidad y composición de los productos varía entre provincias**. Por este motivo, estos promedios no se utilizan para establecer qué provincias son más caras o más baratas entre sí. Para ese objetivo se construye más adelante un **ranking provincial homogéneo**, utilizando los mismos **1.662 productos en las ocho provincias**.
 
 ---
 
@@ -878,6 +907,27 @@ La región de menor nivel de precios no es la misma para ambas cadenas. En DIA, 
 
 Este índice es descriptivo y no representa un índice de costo de vida, participación de mercado ni una canasta de consumo ponderada.
 
+## 📊 Ranking provincial por cadena — universo homogéneo de 8 provincias
+
+Como complemento del análisis regional, se elaboró un ranking de nivel medio de precios por provincia para cada cadena, utilizando **exactamente los mismos 1.662 productos en las ocho provincias**. Primero se considera el precio medio de cada producto en cada provincia y cadena y luego se promedian los productos, otorgando el mismo peso a cada uno. Así se evita que las diferencias de surtido entre provincias determinen el orden del ranking.
+
+Las posiciones se calculan **por separado para cada cadena**, de menor a mayor precio medio:
+
+| Posición | Provincia — DIA | Precio medio DIA | Provincia — Carrefour | Precio medio Carrefour |
+|---:|---|---:|---|---:|
+| 1 | Buenos Aires | $4.894,96 | Jujuy | $4.783,70 |
+| 2 | Entre Ríos | $4.895,07 | Entre Ríos | $5.015,29 |
+| 3 | Córdoba | $4.895,50 | Santa Fe | $5.107,69 |
+| 4 | Santa Fe | $4.895,71 | Buenos Aires | $5.134,55 |
+| 5 | Corrientes | $4.895,99 | Salta | $5.187,31 |
+| 6 | CABA | $4.901,24 | Córdoba | $5.196,81 |
+| 7 | Jujuy | $5.000,19 | Corrientes | $5.226,98 |
+| 8 | Salta | $5.024,45 | CABA | $5.265,37 |
+
+En **Carrefour**, Jujuy presenta el menor precio medio y CABA el mayor: la diferencia respecto de Jujuy es del **10,07%**. En **DIA**, Buenos Aires registra el menor precio medio y Salta el mayor, con una diferencia del **2,65%**. Las primeras seis provincias de DIA tienen precios medios muy próximos entre sí.
+
+El ranking muestra una **mayor amplitud territorial de precios medios en Carrefour** que en DIA para este conjunto idéntico de productos. Es una comparación descriptiva de promedios sin ponderación por hábitos de consumo y no equivale a un índice de costo de vida.
+
 ---
 
 ## 📌 Principales hallazgos de la Etapa 3
@@ -886,7 +936,7 @@ Este índice es descriptivo y no representa un índice de costo de vida, partici
 
 2. Se construyeron dos universos homogéneos: **2.220 productos con cobertura completa en 7 provincias** y **1.662 productos con cobertura completa en 8 provincias**. Excluir Jujuy del requisito de cobertura completa incorpora **558 productos adicionales (+33,57%)**. El universo de 7 provincias es la referencia principal y el de 8 se conserva como sensibilidad.
 
-3. En el **universo flexible de 8 provincias**, DIA presenta un precio medio inferior a Carrefour en 7 provincias; Jujuy es la excepción. El ranking absoluto sitúa a Jujuy como la provincia de menor precio medio para ambas cadenas, pero la comparación relativa dentro de Jujuy favorece a Carrefour. Esto demuestra que el nivel absoluto de precios y la diferencia entre cadenas son preguntas distintas.
+3. En el **universo flexible de 8 provincias**, DIA presenta un precio medio inferior a Carrefour en 7 provincias; Jujuy es la excepción. Este resultado compara las dos cadenas **dentro de cada provincia** y no debe interpretarse como un ranking de provincias, porque la composición de productos cambia entre territorios.
 
 4. En la comparación producto contra producto del **universo homogéneo de 7 provincias**, la diferencia media porcentual favorece a DIA en las siete provincias. La mediana, sin embargo, es mucho más cercana a cero y resulta ligeramente favorable a Carrefour en Buenos Aires y Salta; por eso la conclusión se refiere a la diferencia media del universo y no a una ventaja uniforme en todos los productos.
 
@@ -896,7 +946,9 @@ Este índice es descriptivo y no representa un índice de costo de vida, partici
 
 7. El análisis regional, realizado sobre los **1.662 productos con cobertura completa en las ocho provincias** y otorgando el mismo peso a cada provincia dentro de su región, muestra que DIA presenta precios medios inferiores en **Metropolitana (−4,54%)** y **Centro–Litoral (−3,34%)**. En **NOA**, Carrefour presenta un precio medio inferior, con una diferencia de **+2,79%** para DIA.
 
-8. En conjunto, los resultados muestran que la relación de precios entre DIA y Carrefour depende del territorio y de la escala de análisis. La comparación del nivel medio provincial, la comparación producto a producto y los indicadores de dispersión son complementarios y no deben interpretarse como si respondieran a una misma pregunta.
+8. El **ranking provincial homogéneo de 1.662 productos en ocho provincias** permite comparar el nivel de precios entre territorios sin modificar el conjunto de productos. En **Carrefour**, Jujuy presenta el menor precio medio y CABA el mayor (**+10,07%** respecto de Jujuy); en **DIA**, Buenos Aires presenta el menor y Salta el mayor (**+2,65%** respecto de Buenos Aires). La amplitud territorial es mayor en Carrefour.
+
+9. En conjunto, los resultados muestran que la relación de precios entre DIA y Carrefour depende del territorio y de la escala de análisis. La comparación entre cadenas dentro de cada provincia, el ranking provincial homogéneo, la comparación producto a producto y los indicadores de dispersión responden preguntas complementarias.
 
 ---
 
@@ -1096,24 +1148,112 @@ La Etapa 5 finaliza con el universo principal categorizado y un archivo validado
 
 # 🛒 Etapa 6 — Canasta comparable y conclusiones finales
 
-**Estado: ⬜ Pendiente**
+**Estado: ✅ Completada**
 
-Una vez categorizados los productos se construirá una **canasta comparable** entre DIA y Carrefour.
+La última etapa integra los productos, precios y categorías preparados en las etapas anteriores para comparar **el mismo catálogo de 2.220 artículos** entre DIA y Carrefour y construir una **canasta exploratoria de 33 productos específicos**. El análisis incluye sus costos consolidados, la comparación de la misma canasta en **siete provincias**, la contribución de cada producto y una prueba de sensibilidad.
 
-La selección buscará garantizar que los productos incluidos sean comparables entre ambas cadenas y que la canasta tenga una composición coherente con el objetivo final del proyecto.
+Se conserva el **universo principal de siete provincias** (Buenos Aires, CABA, Córdoba, Corrientes, Entre Ríos, Salta y Santa Fe), definido en la Etapa 3. Permite incluir 558 productos adicionales respecto del universo homogéneo de ocho provincias, sin alterar la composición de artículos comparados entre cadenas. Los precios consolidados se construyeron a partir de las observaciones disponibles y **no otorgan necesariamente el mismo peso a cada provincia o sucursal**.
 
-En esta etapa se realizarán:
+## 📊 Comparación general de los 2.220 productos
 
-- selección de productos;
-- definición de la metodología de cálculo;
-- comparación del costo de la canasta;
-- análisis por cadena y provincia cuando corresponda;
-- construcción de gráficos finales;
-- integración de los principales hallazgos;
-- documentación de limitaciones;
-- elaboración de las conclusiones finales.
+Se calcula la media simple de los precios efectivos medios consolidados de los **mismos 2.220 productos** en cada cadena, dando igual peso a cada artículo.
 
-La canasta se construirá al final porque para ese momento estarán disponibles las dimensiones necesarias: productos, precios, sucursales, provincias y categorías.
+| Indicador | DIA | Carrefour |
+|---|---:|---:|
+| Precio medio por producto | **$5.102,43** | **$5.416,17** |
+| Productos con menor precio | **1.330 (59,91 %)** | **890 (40,09 %)** |
+
+La diferencia entre los precios medios es del **−5,79 % para DIA** respecto de Carrefour. Es un indicador del nivel medio de precios del catálogo comparable; **no equivale al ahorro de una compra habitual ni al costo de una canasta ponderada**.
+
+## 🏷️ Comparación por categoría
+
+La clasificación de las etapas 4 y 5 permite analizar los precios de los mismos productos dentro de cada categoría, aunque **las categorías no intervienen en la elección de los artículos de la canasta**.
+
+| Categoría | Productos | Diferencia entre precios medios DIA vs. Carrefour |
+|---|---:|---:|
+| ALIMENTOS | 1.074 | **−5,57 %** |
+| BEBIDAS | 380 | **−8,03 %** |
+| PERFUMERIA Y LIMPIEZA | 714 | **−5,71 %** |
+| MASCOTAS | 38 | **+0,53 %** |
+| OTROS | 14 | **+2,48 %** |
+
+Las diferencias negativas favorecen a DIA; las positivas, a Carrefour. Las tres categorías más numerosas presentan precios medios inferiores en DIA; en MASCOTAS y OTROS la diferencia favorece ligeramente a Carrefour, aunque los grupos son pequeños y algunas etiquetas proceden de la clasificación automática.
+
+## 🧺 Selección documentada de la canasta
+
+Se realizó una **selección manual e intencional de 33 productos** a partir de un catálogo Excel que mostraba **únicamente `id_producto` y `descripcion_carrefour`**, sin los precios de las cadenas. Este procedimiento redujo el riesgo de elegir artículos en función de sus diferencias de precio, aunque no elimina la subjetividad de la selección.
+
+Se conservó la lista en `data/processed/canasta_seleccionada.xlsx`, con **dos columnas y sin precios**. Posteriormente se recuperaron los precios desde `productos_media_y_categorizados.parquet` mediante `id_producto`, sin copiarlos manualmente.
+
+Para los cálculos se considera **una unidad de la presentación comercial de cada artículo**: por ejemplo, una presentación «3 × 90 g» cuenta como **un paquete**, no como tres paquetes. No se utilizan cantidades de consumo ponderadas. La selección es exploratoria y **no pretende reproducir una canasta básica oficial, una dieta completa ni el gasto representativo de los hogares**.
+
+## 💰 Costo consolidado de la canasta
+
+| Indicador | Resultado |
+|---|---:|
+| Artículos idénticos seleccionados | **33** |
+| Costo con precios medios de DIA | **$147.749,30** |
+| Costo con precios medios de Carrefour | **$150.381,92** |
+| Diferencia DIA − Carrefour | **−$2.632,62 (−1,75 %)** |
+| Productos con menor precio en DIA | **18** |
+| Productos con menor precio en Carrefour | **15** |
+
+La canasta tiene un **costo consolidado menor en DIA por 1,75 %**, aunque su ventaja es más reducida que la diferencia media del universo completo de 2.220 productos (**−5,79 %**). Ambas comparaciones son válidas para sus respectivos conjuntos y no deben interpretarse como resultados equivalentes.
+
+Los artículos que más contribuyen a reducir el costo en DIA incluyen el **queso crema La Serenísima (−$1.362,71)**, el **antitranspirante Dove (−$853,93)** y el **detergente Magistral (−$654,59)**. Entre los que favorecen a Carrefour destacan las **toallas femeninas Always (+$372,72)**, el **aceite Natura (+$300,13)** y el **rollo de cocina Sussex (+$249,03)**.
+
+## 🗺️ Costo de la misma canasta en siete provincias
+
+Se recuperaron los precios efectivos medios por **producto, provincia y cadena** desde `precios_producto_provincia_7.parquet`. Se verificó la presencia de los **33 productos en cada una de las 14 combinaciones provincia–cadena** y se sumó una unidad comercial por artículo.
+
+| Provincia | DIA | Carrefour | Diferencia DIA vs. Carrefour |
+|---|---:|---:|---:|
+| Buenos Aires | $147.505,48 | $147.620,77 | **−0,08 %** |
+| CABA | $148.168,62 | $152.890,39 | **−3,09 %** |
+| Córdoba | $145.949,00 | $147.812,15 | **−1,26 %** |
+| Corrientes | $146.169,00 | $150.096,66 | **−2,62 %** |
+| Entre Ríos | $145.974,38 | $142.706,07 | **+2,29 %** |
+| Salta | $151.384,50 | $145.771,27 | **+3,85 %** |
+| Santa Fe | $145.949,00 | $144.207,00 | **+1,21 %** |
+
+**DIA presenta un menor costo en cuatro provincias** (CABA, Corrientes, Córdoba y Buenos Aires), mientras que **Carrefour lo hace en tres** (Salta, Entre Ríos y Santa Fe). La mayor ventaja provincial de DIA se registra en **CABA (−3,09 %)** y la de Carrefour en **Salta (+3,85 %)**.
+
+Esta comparación usa **los mismos 33 artículos en las siete provincias**, pero los precios son **medias dentro de cada provincia**. Por ello, el promedio de las canastas provinciales no tiene por qué coincidir con el costo consolidado, que utiliza otra agregación. **Tampoco equivale a una compra realizada en una sucursal física concreta**.
+
+## 🧪 Análisis de sensibilidad
+
+Se recalculó la diferencia de costos **33 veces**, excluyendo un artículo distinto en cada escenario y manteniendo todos los demás.
+
+- Diferencia de la canasta completa: **−1,75 %**.
+- Rango de diferencias tras una exclusión: **−2,08 % a −0,87 %**.
+- **En ninguno de los 33 escenarios se invierte la ventaja de DIA.**
+
+La exclusión del **queso crema La Serenísima** reduce la ventaja de DIA hasta **−0,87 %**, mientras que excluir las **toallas femeninas Always** la amplía hasta **−2,08 %**. Esta prueba solo evalúa **exclusiones individuales**; no demuestra que la conclusión permanezca igual con otra selección o cantidades diferentes.
+
+## 📈 Resultados exportados
+
+El notebook `notebooks/06_canasta_comparable_conclusiones.ipynb` exporta visualizaciones PNG a `outputs/figures/` y cinco tablas CSV a `outputs/tables/`, entre ellas:
+
+```text
+etapa6_resumen_general.csv
+etapa6_resumen_categorias.csv
+etapa6_canasta_con_precios.csv
+etapa6_costos_canasta_provincias.csv
+etapa6_sensibilidad_canasta.csv
+```
+
+Las figuras finales incluyen comparación general, categorías, costo consolidado, comparación provincial, contribución de productos, sensibilidad e indicadores históricos recuperados de las etapas 3 y 5. Los gráficos de etapas anteriores se muestran **como contexto** y conservan sus universos originales; por ejemplo, el ranking provincial de ocho provincias utiliza **1.662 productos**, no la canasta de esta etapa.
+
+## ⚠️ Limitaciones específicas
+
+- Los precios corresponden a **SEPA de julio de 2026** y fueron consolidados a partir de observaciones del universo seleccionado; no son cotizaciones actuales ni corresponden necesariamente a una compra posible en una sola sucursal.
+- La canasta fue elegida manualmente y no es representativa de los consumos habituales; la exclusión de las columnas de precios mitiga un sesgo específico, sin eliminar otros sesgos posibles.
+- El precio efectivo incorpora `promo1` según las reglas del proyecto; no incorpora automáticamente todas las condiciones promocionales posibles.
+- Las categorías provienen parcialmente de predicciones automáticas, sujetas a errores residuales y a menor representatividad en los grupos pequeños.
+- La sensibilidad solo considera quitar **un producto por vez** y no establece robustez ante cualquier cambio de canasta.
+- Las comparaciones son **descriptivas**: no permiten atribuir causas de las diferencias ni generalizar automáticamente a otras fechas, provincias o sucursales.
+
+La Etapa 6 cierra el trabajo con resultados comparables y trazables en **tres escalas**: catálogo general de 2.220 artículos, canasta de 33 productos y la misma canasta desagregada en siete provincias.
 
 ---
 
@@ -1130,7 +1270,9 @@ A lo largo de las distintas etapas se utilizan gráficos para comunicar:
 - alcance de promociones;
 - diferencias de precios por provincia;
 - comportamiento territorial y regional;
-- comportamiento de categorías;
+- comportamiento de categorías y comparación de precios medios;
+- costo de la canasta de 33 artículos y su variación por provincia;
+- contribución individual de productos y análisis de sensibilidad;
 - matrices de confusión y comparación de modelos de clasificación;
 - comparación de la canasta;
 - resultados finales.
@@ -1161,11 +1303,18 @@ El proyecto mantiene separadas diferentes dimensiones del análisis para evitar 
 | Universo de sensibilidad | 8 provincias |
 | Control de valores extremos | `|diferencia_pct| > 500%` |
 | Dispersión territorial | Rango porcentual entre provincias |
+| Ranking provincial entre territorios | Precio medio de los mismos 1.662 productos en 8 provincias, por cadena |
 | Taxonomía comercial | Cinco categorías definidas en la Etapa 4 |
 | Métrica principal de clasificación | Macro F1 |
 | Selección del clasificador | Validación cruzada estratificada repetida (5 particiones × 3 repeticiones) |
 | Modelo seleccionado | TF-IDF de palabras + caracteres + LinearSVC |
 | Dataset categorizado definitivo | `productos_media_y_categorizados.parquet` |
+| Universo para los análisis nuevos de la Etapa 6 | 2.220 productos comunes en 7 provincias |
+| Selección de canasta sin precios | `catalogo_seleccion_canasta.xlsx` → `canasta_seleccionada.xlsx`, con 33 identificadores |
+| Costo consolidado de la canasta | Suma de una unidad comercial de cada uno de los 33 productos por cadena |
+| Costo provincial de la canasta | Suma de los mismos 33 productos usando medias por provincia y cadena |
+| Diferencia porcentual del costo | `(costo_DIA − costo_Carrefour) / costo_Carrefour × 100` |
+| Sensibilidad | Exclusión individual de cada uno de los 33 artículos |
 
 Las interpretaciones se plantean de forma descriptiva y se evita atribuir causalidad cuando los datos no permiten establecerla.
 
@@ -1188,6 +1337,8 @@ Los resultados del proyecto deben interpretarse teniendo en cuenta:
 - La media es la medida principal utilizada en la comparación, mientras que la mediana se incorpora como referencia complementaria.
 - La dispersión entre provincias y la dispersión entre sucursales representan fenómenos diferentes y no deben interpretarse como equivalentes.
 - Valores de dispersión iguales a 0% en provincias con pocas sucursales no permiten concluir que una cadena mantenga precios idénticos en todo el territorio.
+- Los promedios del universo flexible permiten comparar cadenas dentro de cada provincia, pero no ordenar provincias por nivel absoluto de precios, porque cambia el conjunto de productos. El ranking provincial se construye por separado sobre los mismos 1.662 productos en ocho provincias.
+- El ranking provincial homogéneo otorga el mismo peso a cada producto y no representa una canasta de consumo ponderada ni un índice de costo de vida.
 - El análisis regional otorga el mismo peso a cada provincia dentro de una región. No representa población, participación de mercado, volumen de ventas ni peso económico.
 - Los precios regionales no representan el costo de una canasta de consumo ponderada.
 - La comparación de precios y dispersiones es descriptiva y no permite establecer causalidad.
@@ -1197,8 +1348,12 @@ Los resultados del proyecto deben interpretarse teniendo en cuenta:
 - Las métricas de clasificación se estimaron sobre un conjunto de prueba reducido y mediante validación cruzada repetida dentro del conjunto etiquetado, sin evaluación completamente independiente después de la selección.
 - La auditoría de las predicciones fue exploratoria y no garantiza que todos los productos estén clasificados correctamente.
 - Doc2Vec necesitó controles adicionales de aleatoriedad, incluido `PYTHONHASHSEED=42` al iniciar Python, para reproducir los resultados observados en el mismo entorno.
-- El archivo final de la Etapa 5 conserva precios medios por cadena, no precios diferenciados por provincia. Para una eventual canasta provincial será necesario recurrir a los datos territoriales de etapas anteriores.
-- La canasta comparable todavía no fue definida, por lo que sus criterios de selección y ponderación no forman parte de los resultados actuales.
+- El archivo final de la Etapa 5 conserva precios medios por cadena, no precios diferenciados por provincia. La Etapa 6 recuperó estos últimos desde `precios_producto_provincia_7.parquet` para calcular la canasta en las siete provincias.
+- La canasta de 33 productos fue seleccionada manualmente sin visualizar precios. Esto reduce un posible sesgo de selección vinculado a conocer cuál cadena es más económica, pero no implica representatividad estadística.
+- El costo de la canasta utiliza una unidad comercial de cada producto, sin ponderaciones de consumo. No representa una canasta básica oficial ni el gasto promedio de los hogares.
+- El costo consolidado y los costos provinciales utilizan agregaciones distintas de los precios medios; sus valores no tienen por qué coincidir al promediarse.
+- La prueba de sensibilidad estudia una exclusión individual a la vez, sin demostrar robustez ante cualquier cambio simultáneo de productos o cantidades.
+- Los gráficos del README requieren que las imágenes PNG exportadas por el notebook se conserven en el repositorio bajo `outputs/figures/`.
 
 ---
 
@@ -1213,7 +1368,7 @@ analisis-precios-NLP-SEPA/
 │
 ├── data/
 │   ├── raw/          # Datos originales descargados de SEPA
-│   ├── processed/    # Datos procesados
+│   ├── processed/    # Parquet, catálogo y selección de la canasta
 │   └── metadata/     # Archivos auxiliares de referencia
 │
 ├── src/
@@ -1225,7 +1380,8 @@ analisis-precios-NLP-SEPA/
 │   ├── 02_sucursales_dia_carrefour.ipynb
 │   ├── 03_precios_por_provincias.ipynb
 │   ├── 04_construccion_categorias.ipynb
-│   └── 05_clasificacion_productos_nlp_ml.ipynb
+│   ├── 05_clasificacion_productos_nlp_ml.ipynb
+│   └── 06_canasta_comparable_conclusiones.ipynb
 │
 └── outputs/
     ├── figures/      # Visualizaciones
@@ -1252,7 +1408,7 @@ El proyecto utiliza principalmente:
 - **Jupyter Notebook**
 - **Parquet**
 
-Estas herramientas se utilizaron en la preparación de datos, los análisis de precios y la comparación de modelos NLP/ML. La Etapa 6 podrá incorporar herramientas adicionales para la canasta y las visualizaciones finales.
+Estas herramientas se utilizaron en las seis etapas, desde la preparación de los datos hasta el análisis de precios, NLP/ML, la canasta comparable y las visualizaciones finales.
 
 ---
 
@@ -1289,6 +1445,7 @@ Estas herramientas se utilizaron en la preparación de datos, los análisis de p
 - [x] Análisis de diferencias territoriales entre provincias.
 - [x] Análisis de dispersión entre sucursales dentro de cada provincia.
 - [x] Análisis regional de precios.
+- [x] Ranking provincial homogéneo con los mismos 1.662 productos en las ocho provincias.
 - [x] Visualizaciones territoriales y regionales.
 
 ### ✅ Completado
@@ -1313,27 +1470,35 @@ Estas herramientas se utilizaron en la preparación de datos, los análisis de p
 - [x] Consolidación y exportación de los 2.220 productos categorizados.
 - [x] Documentación de la reproducibilidad de Doc2Vec.
 
-### ⬜ Pendiente — Etapa 6
+### ✅ Completado — Etapa 6
 
-- [ ] Construcción de la canasta comparable.
-- [ ] Análisis final de la canasta.
-- [ ] Visualizaciones finales.
-- [ ] Conclusiones y cierre del proyecto.
+- [x] Validación de los 2.220 productos del universo principal.
+- [x] Comparación general de precios medios y por categorías.
+- [x] Selección manual de 33 artículos desde un catálogo sin precios.
+- [x] Recuperación de los precios por `id_producto` y cálculo del costo consolidado.
+- [x] Comparación provincial de la misma canasta en siete provincias.
+- [x] Identificación de productos con mayor impacto en las diferencias.
+- [x] Análisis de sensibilidad al excluir un artículo por vez.
+- [x] Integración de resultados previos sin mezclar los universos de análisis.
+- [x] Visualizaciones finales y exportación de cinco tablas de resultados.
+- [x] Conclusiones y cierre del proyecto.
+
+**Estado general: seis etapas completadas.**
 
 ---
 
 # 📖 Conclusión
 
-Las cinco primeras etapas establecen una base progresiva para el análisis comparativo de precios entre DIA y Carrefour y la clasificación comercial de sus productos.
+El proyecto integró **seis etapas completas** para transformar más de **7,6 millones de registros de productos SEPA** en análisis comparativos de precios entre DIA y Carrefour, incorporando calidad de datos, normalización geográfica, estadísticas descriptivas y clasificación de texto mediante NLP y Machine Learning.
 
-La **Etapa 1** permitió preparar el universo de productos comunes y analizar precios y promociones, diferenciando conceptos como dispersión, precio de lista, precio efectivo, profundidad y alcance promocional.
+La **Etapa 1** preparó los productos comunes y estudió precios efectivos, dispersión y promociones, diferenciando la frecuencia, profundidad y extensión de los descuentos.
 
-La **Etapa 2** incorporó la dimensión geográfica, realizando una inspección detallada de las sucursales, corrigiendo inconsistencias relevantes en las referencias provinciales, normalizando los nombres y delimitando el territorio común entre ambas cadenas.
+La **Etapa 2** normalizó los datos de sucursales, corrigió inconsistencias provinciales y delimitó las ocho provincias con presencia de ambas cadenas.
 
-La **Etapa 3** incorporó el análisis territorial de precios. Se construyeron universos comparables de 7 y 8 provincias, se controlaron diferencias porcentuales extremas y se compararon media y mediana. Además, se incorporó un análisis flexible del nivel medio de precios por provincia y un ranking independiente para cada cadena. Estos resultados se distinguen de la comparación producto a producto en el universo homogéneo. También se analizaron la dispersión territorial entre provincias y sucursales, y las diferencias regionales, que muestran que la relación de precios entre DIA y Carrefour cambia según el territorio y la escala de análisis.
+La **Etapa 3** definió el universo principal de **2.220 productos comunes en siete provincias** y un universo de sensibilidad de **1.662 productos en ocho provincias**, evitando comparar directamente los niveles de precios de territorios con surtidos distintos. El ranking homogéneo mostró una amplitud de **10,07 % en Carrefour y 2,65 % en DIA**, mientras que la mediana del rango de dispersión territorial fue de **9,21 % y 3,61 %**, respectivamente.
 
-Como resultado de la **Etapa 4**, el proyecto definió una taxonomía comercial propia de cinco categorías y preparó una muestra de **400 productos etiquetados manualmente** sobre un universo de **2.220**, como base para el aprendizaje supervisado. La distribución de las etiquetas era desigual, por lo que la evaluación posterior debía prestar especial atención a las categorías minoritarias.
+La **Etapa 4** construyó cinco categorías comerciales y etiquetó manualmente **400 productos**. La **Etapa 5** comparó cinco enfoques de clasificación de textos y seleccionó **TF-IDF de palabras y caracteres + LinearSVC** mediante validación cruzada repetida (**Macro F1 medio de 0,911**). El modelo categorizó los **1.820 productos restantes**, con una auditoría y dos correcciones manuales posteriores.
 
-La **Etapa 5** permitió entrenar y evaluar cinco enfoques de clasificación de textos, comparar sus resultados y seleccionar **TF-IDF de palabras y caracteres + LinearSVC** mediante validación cruzada repetida. El modelo elegido se aplicó a los **1.820 productos pendientes**, se realizó una auditoría exploratoria y se corrigieron manualmente dos clasificaciones. El resultado es un archivo Parquet con los **2.220 productos categorizados**, sus descripciones comerciales y los precios medios de ambas cadenas. También se documentaron las condiciones de reproducibilidad necesarias para Doc2Vec.
+Finalmente, la **Etapa 6** comparó los precios medios de los **2.220 artículos idénticos** (**−5,79 % favorable a DIA**) y construyó, a partir de una elección manual sin visualizar precios, una **canasta exploratoria de 33 artículos**, de costo **$147.749,30 en DIA** y **$150.381,92 en Carrefour** (**−1,75 %**). Al calcular esa misma canasta por provincia, **DIA resultó de menor costo en cuatro territorios y Carrefour en tres**, por lo que el resultado general no constituye una ventaja uniforme en todas las provincias. La sensibilidad por exclusión individual no invirtió el signo de la diferencia en ninguno de los 33 escenarios.
 
-Con las **Etapas 1 a 5 completadas**, el proyecto cuenta con una base preparada para desarrollar la **Etapa 6: canasta comparable y conclusiones finales**. Los resultados de clasificación y precios deben interpretarse dentro del alcance de los datos y las limitaciones metodológicas documentadas.
+El principal aporte del proyecto es la **trazabilidad completa entre preparación de datos, construcción de universos comparables, modelado NLP/ML e interpretación comercial**. Los resultados son descriptivos del conjunto y fecha analizados; no representan una canasta oficial, precios actuales ni una estimación causal o generalizable a todos los hogares.
